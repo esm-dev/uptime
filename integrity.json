@@ -1,0 +1,14 @@
+{
+  "$schema": "./schema.json",
+  "list": [
+    {
+      "url": "https://esm.sh/react@19.0.0",
+      "integrity": "sha256-b2d09997656003a0c3066d95bcf66a7bd0ac68333e66678655e983465e649145"
+    },
+    {
+      "url": "https://esm.sh/react@19.0.0",
+      "target": "denonext",
+      "integrity": "sha256-ab1f4aa20ac56c237bbb204632bdb55f03a0ab005d21944eeb447e5e37879637"
+    }
+  ]
+}

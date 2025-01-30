@@ -1,0 +1,51 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "description": "The schema for the integrity list of esm.sh modules.",
+  "type": "object",
+  "properties": {
+    "list": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "The URL to guarantee integrity."
+          },
+          "integrity": {
+            "type": "string",
+            "description": "The integrity to verify the URL."
+          },
+          "target": {
+            "type": "string",
+            "description": "The build target for the URL.",
+            "enum": [
+              "es2015",
+              "es2016",
+              "es2017",
+              "es2018",
+              "es2019",
+              "es2020",
+              "es2021",
+              "es2022",
+              "es2023",
+              "es2024",
+              "esnext",
+              "deno",
+              "denonext",
+              "node"
+            ]
+          },
+          "userAgent": {
+            "type": "string",
+            "description": "The user agent to fetch the URL."
+          }
+        },
+        "required": [
+          "url",
+          "integrity"
+        ]
+      }
+    }
+  }
+}
