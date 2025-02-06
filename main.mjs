@@ -1,5 +1,7 @@
 import integrityData from "./integrity.json" with { type: "json" };
 
+const defaultUserAgent =
+  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36";
 const targets = new Set([
   "es2015",
   "es2016",
@@ -16,8 +18,6 @@ const targets = new Set([
   "denonext",
   "node",
 ]);
-const defaultUserAgent =
-  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36";
 
 async function checkWebsite() {
   const res = await fetchEsmsh("https://esm.sh");
@@ -79,41 +79,39 @@ async function checkModules() {
 }
 
 async function fetchEsmsh(url, userAgent) {
-  for (let i = 0, res; i < 3; i++) {
-    try {
-      res = await fetch(url, { headers: { "User-Agent": userAgent ?? defaultUserAgent } });
-    } catch (error) {
-      if (i < 2) {
-        await new Promise((r) => setTimeout(r, 100 * (i + 1)));
+  return new Promise((resolve, reject) => {
+    const ac = new AbortController();
+    setTimeout(() => {
+      ac.abort();
+      reject(new Error("Fetch timeout"));
+    }, 10000); // 10s
+    fetch(url, { headers: { "User-Agent": userAgent ?? defaultUserAgent }, signal: ac.signal }).then(res=>{
+      if (!res.ok) {
+        reject(new Error(`Fetch ${url}: ${res.status}>`));
       }
-      continue;
-    }
-    if (!res.ok) {
-      throw new Error(`${url}: ${res.status}>`);
-    }
-    return res;
-  }
-  throw new Error(`Failed to fetch: ${url}`);
+      resolve(res);
+    }, reject);
+  })
 }
 
-function reportError(reportType) {
+function reportError(monitorType, env) {
   return function(error) {
-    console.error(`⚠️ [${reportType}]`, error.message);
-    return true;
+    console.error(`⚠️ [${monitorType}]`, error.message);
+    return error;
   };
 }
 
-async function check() {
+async function check(env) {
   const errors = await Promise.all([
-    checkWebsite().catch(reportError("website")),
-    checkServerStatus().catch(reportError("server")),
-    checkModules().catch(reportError("CDN")),
+    checkWebsite().catch(reportError("website", env)),
+    checkServerStatus().catch(reportError("server", env)),
+    checkModules().catch(reportError("CDN", env)),
   ]);
   return errors.filter(Boolean);
 }
 
 if (import.meta.main) {
-  const errors = await check();
+  const errors = await check(Deno.env.toObject());
   if (errors.length === 0) {
     console.log("✅ All checks passed");
     Deno.exit(0);
@@ -121,3 +119,16 @@ if (import.meta.main) {
     Deno.exit(1);
   }
 }
+
+export default {
+  async scheduled(event, env, ctx) {
+    await check(env);
+  },
+  async fetch(request, env) {
+    const errors = await check(env);
+    if (errors.length === 0) {
+      return new Response("✅ All checks passed", { status: 200 });
+    }
+    return Response.json({ errors: errors.map(e => e.message) }, { status: 500 });
+  },
+};
