@@ -34,11 +34,8 @@ async function checkServerStatus() {
   const res = await fetchEsmsh("https://esm.sh/status.json?t=" + Date.now().toString(36));
   try {
     const json = await res.json();
-    if (json.disk === "error") {
-      throw new Error("Disk error");
-    }
-    if (json.disk === "full") {
-      throw new Error("Disk full");
+    if (json.disk !== "ok") {
+      throw new Error("Disk " + json.disk);
     }
     if (!json.uptime) {
       throw new Error("Bad status.json");
