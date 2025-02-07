@@ -9,6 +9,13 @@
       "url": "https://esm.sh/react@19.0.0",
       "target": "denonext",
       "integrity": "sha256-ab1f4aa20ac56c237bbb204632bdb55f03a0ab005d21944eeb447e5e37879637"
+    },
+    {
+      "url": "https://esm.sh/react@19.0.0/es2022/react.mjs",
+      "integrity": "sha256-92b896580737b8b2d75b0a84a92fd2b4f3a62e692d96be1994a5185050db289d"
+    },  {
+      "url": "https://esm.sh/react@19.0.0/denonext/react.mjs",
+      "integrity": "sha256-87fdb28d39ca8983bdba3e7ec329305f95463cfc70c015b2620b4900fa15efdd"
     }
   ]
 }
