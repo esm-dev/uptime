@@ -79,19 +79,27 @@ async function checkModules() {
 }
 
 async function fetchEsmsh(url, userAgent) {
-  return new Promise((resolve, reject) => {
-    const ac = new AbortController();
-    setTimeout(() => {
-      ac.abort();
-      reject(new Error("Fetch timeout"));
-    }, 10000); // 10s
-    fetch(url, { headers: { "User-Agent": userAgent ?? defaultUserAgent }, signal: ac.signal }).then(res=>{
-      if (!res.ok) {
-        reject(new Error(`Fetch ${url}: ${res.status}>`));
-      }
-      resolve(res);
-    }, reject);
-  })
+  const doFetch = () =>
+    new Promise((resolve, reject) => {
+      const ac = new AbortController();
+      setTimeout(() => {
+        ac.abort();
+        reject(new Error(`Fetch ${url}: timeout`));
+      }, 10000); // 10s
+      fetch(url, { headers: { "User-Agent": userAgent ?? defaultUserAgent }, signal: ac.signal }).then(res => {
+        if (!res.ok) {
+          reject(new Error(`Fetch ${url}: ${res.status}`));
+        }
+        resolve(res);
+      }, reject);
+    });
+  try {
+    return await doFetch();
+  } catch (error) {
+    // retry once after 500ms
+    await new Promise(resolve => setTimeout(resolve, 500));
+    return await doFetch();
+  }
 }
 
 function reportError(monitorType, env) {
